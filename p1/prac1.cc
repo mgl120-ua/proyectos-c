@@ -73,6 +73,7 @@ void showMainMenu(){
 }
 
 void editProject(Project &toDoList){
+
   cout<<"Enter project name:";
   cin.ignore();
   getline(cin,toDoList.name); 
@@ -87,6 +88,7 @@ void editProject(Project &toDoList){
   cout<<"Enter project description:";
   cin.ignore();
   getline(cin,toDoList.description); 
+  
 }
 
 void addList(Project &toDoList){
