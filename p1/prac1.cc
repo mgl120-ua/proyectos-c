@@ -75,25 +75,38 @@ void showMainMenu(){
 }
 
 void editProject(Project &toDoList){
-
-  cout<<"Enter project name:";
-  cin.ignore();
-  getline(cin,toDoList.name); 
-
   while(toDoList.name==""){
-    error(ERR_EMPTY);
     cout<<"Enter project name:";
-    cin.ignore();
-    getline(cin,toDoList.name);      
+    getline(cin,toDoList.name);
+
+    if(toDoList.name=="") 
+      error(ERR_EMPTY);     
   } 
 
   cout<<"Enter project description:";
-  cin.ignore();
   getline(cin,toDoList.description); 
-
 }
 
 void addList(Project &toDoList){
+  List newlist;
+  do{
+    cout<<"Enter list name:";
+    getline(cin,newlist.name);
+
+    if(newlist.name==""){
+      error(ERR_EMPTY);
+    }
+
+  }while(newlist.name=="");
+
+  if(!(toDoList.lists.empty())){
+
+    for(int i=0;i<toDoList.lists.size();i++){
+      if(newlist.name==toDoList.lists[i].name)
+       error(ERR_LIST_NAME);
+    }
+  }
+  toDoList.lists.push_back(newlist);
 }
 
 void deleteList(Project &toDoList){
@@ -115,6 +128,7 @@ int main(){
   Project toDoList;
   toDoList.id=1;
   char option;
+
   
   do{
     showMainMenu();
