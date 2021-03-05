@@ -77,7 +77,7 @@ bool nameList(Project toDoList, List &newlist){
 	//comprobar que el vector no esta vacio
 	if(!(toDoList.lists.empty())){
 		for(unsigned int i=0; i<toDoList.lists.size(); i++){
-			//Comprobar que no hay ninguna lisrta igual a la que se quiere añadir
+			//Comprobar que no hay ninguna lista igual a la que se quiere añadir
 			if(newlist.name==toDoList.lists[i].name){
 				return(true);
 			}
@@ -90,6 +90,7 @@ bool nameList(Project toDoList, List &newlist){
 	return(false);
 }
 
+//Funcion introducir nombre tarea
 bool nameTask(Project toDoList, Task &newtask){
 	//return(true)-> tarea existe , return(false)-> tarea no existe
 	cout<<"Enter task name:";
@@ -131,7 +132,7 @@ void editProject(Project &toDoList){
 
     if(toDoList.name=="") 
     	error(ERR_EMPTY);     
-  } 
+	} 
 	
 	cout<<"Enter project description:";
 	getline(cin,toDoList.description); 
@@ -140,20 +141,20 @@ void editProject(Project &toDoList){
 void addList(Project &toDoList){
 	List newlist;
 
-	if(nameList(toDoList,newlist))
+	if(nameList(toDoList,newlist))//comprobar que la lista existe para dar error
 		error(ERR_LIST_NAME);
 	else
-		toDoList.lists.push_back(newlist); //Añadir lista al final del vector
+		toDoList.lists.push_back(newlist); //Añadir lista al final del vector si la lista no existe 
 }
 
 void deleteList(Project &toDoList){
 	List newlist;
 
-	if(nameList(toDoList,newlist)){
-		if(!(toDoList.lists.empty())){
+	if(nameList(toDoList,newlist)){//Comprobar que la lista existe
+		if(!(toDoList.lists.empty())){//Comprobar que el vector no esta vacio
 			for(unsigned int i=0; i<toDoList.lists.size(); i++){
 				if(newlist.name==toDoList.lists[i].name)
-					toDoList.lists[i].name.pop_back();//Eliminar lista del vector
+					toDoList.lists.erase(toDoList.lists.begin()+i);//Eliminar lista del vector
 				else
 					error(ERR_LIST_NAME);//Si no encuentra un vector con el nombre introducido
 			}
@@ -167,36 +168,61 @@ void addTask(Project &toDoList){
 	List newlist;
 	Task newtask;
 
-	if(!(nameList(toDoList, newlist))){
+	if(!(nameList(toDoList, newlist))){//Comprobar que la lista no existe para dar error y volver al menu
 		error(ERR_LIST_NAME);
 		return;
 	}
 	
 	nameTask(toDoList,newtask);
 
-	char a,b;
+	char a,b;//variables para separar dia/mes/año
 	cout<<"Enter deadline:";
 	cin>>newtask.deadline.day >> a >> newtask.deadline.month >> b >> newtask.deadline.year;
 
 	//Si ocurre algo de esto la fecha no sera valida y la tarea no se creara
-	//Si el año no está entre 2000 y 2100, si el mes no esta entre 1(enero) y 12 (diciembre), si los meses impares tienen mas 31 dias, si los meses pares no tienen 30 dias excepto febrero, si el año es bisiesto que febrero no tenga 29 dias y si el año no es bisiesto que febrero no tenga 28 dias 
-	if((newtask.deadline.year < 2000 || newtask.deadline.year > 2100) || (newtask.deadline.month < 1 || newtask.deadline.month > 12) || (newtask.deadline.month%2 != 0 && newtask.deadline.day > 31) || (newtask.deadline.month%2 == 0 && newtask.deadline.day > 30) || (((((newtask.deadline.year%4 == 0 && newtask.deadline.year%100 == 0) && newtask.deadline.year%400 == 0) || (newtask.deadline.year%4 == 0 && newtask.deadline.year%100 != 0)) && newtask.deadline.month == 2) && newtask.deadline.day > 29) || (((((newtask.deadline.year%4 != 0 && newtask.deadline.year%100 != 0) && newtask.deadline.year%400 != 0) || (newtask.deadline.year%4 != 0 && newtask.deadline.year%100 == 0)) && newtask.deadline.month == 2) && newtask.deadline.day > 28)){
+	//Si el año no está entre 2000 y 2100, si el mes no esta entre 1(enero) y 12(diciembre), si los meses impares tienen mas de 31 dias, si los meses pares no tienen 30 dias excepto febrero
+	if((newtask.deadline.year < 2000 || newtask.deadline.year > 2100)
+	|| (newtask.deadline.month < 1 || newtask.deadline.month > 12) 
+	|| (newtask.deadline.month%2 != 0 && newtask.deadline.day > 31) 
+	|| (newtask.deadline.month%2 == 0 && newtask.deadline.day > 30 && newtask.deadline.month != 2)){
+			
 		error(ERR_DATE);
-	    return;
+		return;
 	}
+
+	//Si el mes es febrero para comprobar años bisiestos
+	if(newtask.deadline.month == 2){
+		//Si el año es bisiesto 
+		if((newtask.deadline.year%4 == 0 && newtask.deadline.year%100 == 0 && newtask.deadline.year%400 == 0) || (newtask.deadline.year%4 == 0 && newtask.deadline.year%100 != 0)){
+			//Tenga 29 dias
+			if(newtask.deadline.day > 29){
+				error(ERR_DATE);
+			    return;
+			}
+		}
+
+		//Si el año no es bisiesto
+		else{
+			//Tenga 28 dias
+			if(newtask.deadline.day > 28){
+				error(ERR_DATE);
+			    return;
+			}
+		}
+	}
+
 
 	cout<<"Enter expected time:";
 	cin>>newtask.time;
-	if(newtask.time<1||newtask.time>180){
+	if(newtask.time<1 || newtask.time>180){//Comprobar que el tiempo no esta entre 1 y 180 minutos, dar error y volver al menu
 	    error(ERR_TIME);
 		return;
 	}
 
-	//Añadir nuevo registro Task en la lista correspondiente si la lista existe
 	for(unsigned int i=0; i<toDoList.lists.size(); i++){
 		if(newlist.name==toDoList.lists[i].name){
-	  		toDoList.lists[i].tasks.push_back(newtask);
-	  		newtask.isDone=false;
+			newtask.isDone=false;//Marcar como tarea no echa
+	  		toDoList.lists[i].tasks.push_back(newtask);//Añadir nuevo registro Task en la lista correspondiente si la lista existe
 	  	}
 	}
 }
@@ -205,21 +231,22 @@ void deleteTask(Project &toDoList){
 	List newlist;
 	Task newtask;
 
+	//Comprobar si la lista introducida no existe para dar error y volver al menu
 	if(!(nameList(toDoList,newlist))){
 		error(ERR_LIST_NAME);
 		return;
 	}
 
+	//Comprobar si la tarea introducida no existe para dar error y volver al menu
 	if(!(nameTask(toDoList,newtask))){
 		error(ERR_TASK_NAME);
 		return;
 	}
 
-	//Eliminar la tarea de la lista correspondiente
 	for(unsigned int i=0; i<toDoList.lists.size(); i++){
 		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){
 			if(newtask.name==toDoList.lists[i].tasks[j].name){
-				toDoList.lists[i].tasks[j].name.pop_back();
+				toDoList.lists[i].tasks.erase(toDoList.lists[i].tasks.begin()+j);//Eliminar la tarea de la lista correspondiente
 			}
 		}
 	}
@@ -242,16 +269,13 @@ void toggleTask(Project &toDoList){
 	for(unsigned int i=0; i<toDoList.lists.size(); i++){
 		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){
 			if(newtask.name==toDoList.lists[i].tasks[j].name){
-				//repasa isDone
-				cout<<toDoList.lists[i].tasks[j].isDone<<endl;
-				cout<<"yes1"<<endl;
+				//Si la tarea no esta echa cambiarla a echa
 				if(toDoList.lists[i].tasks[j].isDone==false){
 					toDoList.lists[i].tasks[j].isDone=true;
-					cout<<"yes"<<endl;
 				}
+				//Si la tarea estaba echa cambaiarla a no echa
 				else if(toDoList.lists[i].tasks[j].isDone==true){
 					toDoList.lists[i].tasks[j].isDone=false;
-					cout<<"no"<<endl;
 				}
 			
 			}
@@ -260,7 +284,64 @@ void toggleTask(Project &toDoList){
 }
 
 void report(const Project &toDoList){
+	char finish;
+	int  done=0, left=0, totaldone=0, totalleft=0, oldday=100, oldmonth=100, oldyear=3000;
+	string oldtask;
+
+	cout<<"Name:"<< toDoList.name << endl;
+	if(toDoList.description!="")
+		cout<<"Description:"<<toDoList.description<<""<<endl;
+
+	for(unsigned int i=0; i<toDoList.lists.size(); i++){//Recorrer vector de listas
+		cout<<toDoList.lists[i].name<<endl;
+
+		if(toDoList.lists[i].tasks.empty())//Si el vector tarea esta vacio no hay ninguna tarea pendiente
+			oldtask="";
+
+		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){//Recorrer vector de tareas
+			if(toDoList.lists[i].tasks[j].isDone==false){
+				finish=' ';
+				left++;//Contador de tareas pendientes
+				totalleft=totalleft+toDoList.lists[i].tasks[j].time;//Contador del tiempo de las tareas pendientes
+			}
+			if(toDoList.lists[i].tasks[j].isDone==true){
+				finish='X';
+				done++;//Contador de tareas echas
+				totaldone=totaldone+toDoList.lists[i].tasks[j].time;//Contador del tiempo de las tareas echas
+			}
+
+			cout<<"["<<finish<<"] ";//Marcar si la tarea esta echa o no
+			cout<<" ("<<toDoList.lists[i].tasks[j].time<<") ";//Tiempo tarea
+			cout<<toDoList.lists[i].tasks[j].deadline.year<<"-"<<toDoList.lists[i].tasks[j].deadline.month<<"-"<<toDoList.lists[i].tasks[j].deadline.day<<" : ";//Fecha tarea
+			if(toDoList.lists[i].tasks[j].name!="")
+				cout<<toDoList.lists[i].tasks[j].name<<endl;//Nombre si lo hay
+
+			//Si la tarea no esta echa
+			if(toDoList.lists[i].tasks[j].isDone==false){
+				//Y si el año es mayor que el anterior
+				if((oldyear>toDoList.lists[i].tasks[j].deadline.year) 
+					//Si el año es igual, pero el mes es mayor que el anterio
+					|| ((oldyear==toDoList.lists[i].tasks[j].deadline.year) && (oldmonth>toDoList.lists[i].tasks[j].deadline.month))
+						//Si el año y el mes son iguales pero el dia es mayor 
+						|| ((oldyear==toDoList.lists[i].tasks[j].deadline.year) && (oldmonth>toDoList.lists[i].tasks[j].deadline.month) && (oldday>toDoList.lists[i].tasks[j].deadline.day))){
+
+							//Guardar valores para comprobar con la siguiente tarea
+							oldyear=toDoList.lists[i].tasks[j].deadline.year;
+							oldmonth=toDoList.lists[i].tasks[j].deadline.month;
+							oldday=toDoList.lists[i].tasks[j].deadline.day;
+							oldtask=toDoList.lists[i].tasks[j].name;
+				}
+			}
+		}
+	}
+
+	cout<<"Total left: "<<left<<" ("<<totalleft<<" minutes)"<<endl;//Total de las tareas pendientes
+	cout<<"Total done: "<<done<<" ("<<totaldone<<" minutes)"<<endl;//Total de las tareas echas 
+
+	if(oldtask!="")
+		cout<<"Highest priority: "<<oldtask<<" ("<<oldyear<<"-"<<oldmonth<<"-"<<oldday<<")"<<endl;//Mostrar la tarea mas antigua y pendiente de hacer
 }
+
 
 int main(){
   Project toDoList;
