@@ -207,8 +207,8 @@ void addTask(Project &toDoList){
 
 	else if(newtask.deadline.month == 4 || newtask.deadline.month == 6 || newtask.deadline.month == 9 || newtask.deadline.month == 11 ){
 		if(newtask.deadline.day > 30 || newtask.deadline.day < 1){
-				error(ERR_DATE);
-			    return;
+			error(ERR_DATE);
+			return;
 		}
 	}
 
@@ -263,8 +263,7 @@ void deleteTask(Project &toDoList){
 
 void toggleTask(Project &toDoList){
 	List newlist;
-	Task newtask, taskchange;
-	//bool change=false;
+	Task newtask;
 
 	if(!(nameList(toDoList,newlist))){
 		error(ERR_LIST_NAME);
@@ -278,29 +277,18 @@ void toggleTask(Project &toDoList){
 
 	for(unsigned int i=0; i<toDoList.lists.size(); i++){
 		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){
-			if(newtask.name==toDoList.lists[i].tasks[j].name){
+			if(newlist.name==toDoList.lists[i].name && newtask.name==toDoList.lists[i].tasks[j].name){
 				//Si la tarea no esta echa cambiarla a echa
 				if(toDoList.lists[i].tasks[j].isDone==false){
 					toDoList.lists[i].tasks[j].isDone=true;
-					taskchange=toDoList.lists[i].tasks[j];
-					toDoList.lists[i].tasks.erase(toDoList.lists[i].tasks.begin()+j);
-					toDoList.lists[i].tasks.push_back(taskchange);
 				}
 				//Si la tarea estaba echa cambaiarla a no echa
 				else if(toDoList.lists[i].tasks[j].isDone==true){
 					toDoList.lists[i].tasks[j].isDone=false;
 				}
-
-				break;
 			}
 		}
 	}
-	//if(change==true){
-	//	for(unsigned int i=0; i<toDoList.lists.size(); i++){
-			
-	//		change=false;
-	//	}
-	//}
 }
 
 void report(const Project &toDoList){
@@ -318,26 +306,21 @@ void report(const Project &toDoList){
 		if(toDoList.lists[i].tasks.empty())//Si el vector tarea esta vacio no hay ninguna tarea pendiente
 			oldtask="";
 
-		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){//Recorrer vector de tareas
+		//Recorrer vector de tareas no echas
+		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){
 			if(toDoList.lists[i].tasks[j].isDone==false){
+
 				finish=' ';
 				left++;//Contador de tareas pendientes
 				totalleft=totalleft+toDoList.lists[i].tasks[j].time;//Contador del tiempo de las tareas pendientes
-			}
-			if(toDoList.lists[i].tasks[j].isDone==true){
-				finish='X';
-				done++;//Contador de tareas echas
-				totaldone=totaldone+toDoList.lists[i].tasks[j].time;//Contador del tiempo de las tareas echas
-			}
 
-			cout<<"["<<finish<<"]";//Marcar si la tarea esta echa o no
-			cout<<" ("<<toDoList.lists[i].tasks[j].time<<") ";//Tiempo tarea
-			cout<<toDoList.lists[i].tasks[j].deadline.year<<"-"<<toDoList.lists[i].tasks[j].deadline.month<<"-"<<toDoList.lists[i].tasks[j].deadline.day<<" : ";//Fecha tarea
-			if(toDoList.lists[i].tasks[j].name!="")
-				cout<<toDoList.lists[i].tasks[j].name<<endl;//Nombre si lo hay
+				cout<<"["<<finish<<"]";//Marcar si la tarea esta echa o no
+				cout<<" ("<<toDoList.lists[i].tasks[j].time<<") ";//Tiempo tarea
+				cout<<toDoList.lists[i].tasks[j].deadline.year<<"-"<<toDoList.lists[i].tasks[j].deadline.month<<"-"<<toDoList.lists[i].tasks[j].deadline.day<<" : ";//Fecha tarea		
+				if(toDoList.lists[i].tasks[j].name!="")
+					cout<<toDoList.lists[i].tasks[j].name;//Nombre si lo hay
+				cout<<endl;
 
-			//Si la tarea no esta echa
-			if(toDoList.lists[i].tasks[j].isDone==false){
 				//Y si el año es mayor que el anterior
 				if((oldyear>toDoList.lists[i].tasks[j].deadline.year) 
 					//Si el año es igual, pero el mes es mayor que el anterio
@@ -353,6 +336,23 @@ void report(const Project &toDoList){
 				}
 			}
 		}
+
+		//Recorrer vector de tareas echas
+		for(unsigned int j=0; j<toDoList.lists[i].tasks.size(); j++){//Recorrer vector de tareas
+			if(toDoList.lists[i].tasks[j].isDone==true){
+
+				finish='X';
+				done++;//Contador de tareas echas
+				totaldone=totaldone+toDoList.lists[i].tasks[j].time;//Contador del tiempo de las tareas echas
+
+				cout<<"["<<finish<<"]";//Marcar si la tarea esta echa o no
+				cout<<" ("<<toDoList.lists[i].tasks[j].time<<") ";//Tiempo tarea
+				cout<<toDoList.lists[i].tasks[j].deadline.year<<"-"<<toDoList.lists[i].tasks[j].deadline.month<<"-"<<toDoList.lists[i].tasks[j].deadline.day<<" : ";//Fecha tarea	
+				if(toDoList.lists[i].tasks[j].name!="")
+					cout<<toDoList.lists[i].tasks[j].name;//Nombre si lo hay
+				cout<<endl;
+			}
+		}	
 	}
 
 	cout<<"Total left: "<<left<<" ("<<totalleft<<" minutes)"<<endl;//Total de las tareas pendientes
