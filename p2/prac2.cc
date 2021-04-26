@@ -516,7 +516,7 @@ void addProject(ToDo &toDoProject){
 			//Comprobar que no hay ninguna lista igual a la que se quiere añadir
 			if(toDoList.name==toDoProject.projects[i].name){
 				error(ERR_PROJECT_NAME);
-				break;
+				return;
 			}
 		}
 	}
@@ -542,7 +542,7 @@ void deleteProject(ToDo &toDoProject){
 void importProjects(ToDo &toDoProject, string nameFile){
 
 	if(nameFile==""){
-		cout << "Enter filename:";
+		cout << "Enter filename: ";
 		cin >> nameFile;
 	}
 
@@ -555,82 +555,87 @@ void importProjects(ToDo &toDoProject, string nameFile){
 
 		while(fl >> start){//Leer caracter a caracter
 
-			if(start == '#'){//Si el caracter es # hay un proyecto
+			if(start == '<'){
+				fl >> start;
+				if(start == '#'){//Si el caracter es # hay un proyecto
 
-				Project toDoList;
-				getline(fl,line);//Leer una linea
-				bool coincide=false;//Inicializacion del boleeano para comprobar el nombre del proyecto 
+					Project toDoList;
+					getline(fl,line);//Leer una linea
+					bool coincide=false;//Inicializacion del boleeano para comprobar el nombre del proyecto 
 
-				if(!(toDoProject.projects.empty())){//comprobar que el vector no esta vacio
-					for(unsigned int i=0; i<toDoProject.projects.size(); i++){//Recorrer vector de proyectos
-						if(line==toDoProject.projects[i].name){//Si hay alguna lista igual a la que se quiere añadir
-							error(ERR_PROJECT_NAME);//Error de nombre del proyecto
-							coincide=true;
+					if(!(toDoProject.projects.empty())){//comprobar que el vector no esta vacio
+						for(unsigned int i=0; i<toDoProject.projects.size(); i++){//Recorrer vector de proyectos
+							if(line==toDoProject.projects[i].name){//Si hay alguna lista igual a la que se quiere añadir
+								error(ERR_PROJECT_NAME);//Error de nombre del proyecto
+								coincide=true;
+							}
 						}
 					}
-				}
-				if(coincide==false){//Si no coincide el nombre del proyecto
-					toDoList.name=line;//Nombre del proyecto 
-					toDoList.id=toDoProject.nextId;//Id del proyecto 
-					toDoProject.nextId++;//Incremento del id para el siguiente 
+					if(coincide==false){//Si no coincide el nombre del proyecto
+						toDoList.name=line;//Nombre del proyecto 
+						toDoList.id=toDoProject.nextId;//Id del proyecto 
+						toDoProject.nextId++;//Incremento del id para el siguiente 
 
-					fl >> start;//Leer siguiente caracter
-					if(start == '*'){//Si el caracter es * hay descripcion
-						getline(fl,line);//Leer linea
-						toDoList.description=line;//Descripcion del proyecto
+						fl >> start;//Leer siguiente caracter
+						if(start == '*'){//Si el caracter es * hay descripcion
+							getline(fl,line);//Leer linea
+							toDoList.description=line;//Descripcion del proyecto
 
-						fl >> start;
-					}
+							fl >> start;
+						}
 
-					while(start == '@'){//Mientras el caracter sea @ hay una lista
-						List newList;
-						getline(fl,line);
-						newList.name=line;//Nombre de la lista
-						fl >> start;
-						
-						while(start != '@' && start != '>'){//Mientras no haya una lista (@) o un final de datos(>) hay una tarea
-							Task newTask;
-							while(start != '|'){//Mientras no hay |
-								arrayTask.push_back(start);//Se añade el nuevo caracter al array
-								fl.get(start);//usamos .get para leer los blancos y leemos todo el nombre de la tarea hasta encontrar |
-						    }
+						while(start == '@'){//Mientras el caracter sea @ hay una lista
+							List newList;
+							getline(fl,line);
+							newList.name=line;//Nombre de la lista
+							fl >> start;
+							
+							while(start != '@' && start != '>'){//Mientras no haya una lista (@) o un final de datos(>) hay una tarea
+								Task newTask;
+								while(start != '|'){//Mientras no hay |
+									arrayTask.push_back(start);//Se añade el nuevo caracter al array
+									fl.get(start);//usamos .get para leer los blancos y leemos todo el nombre de la tarea hasta encontrar |
+							    }
 
-						    newTask.name=arrayTask;//El array creado es el nombre de la tarea
+							    newTask.name=arrayTask;//El array creado es el nombre de la tarea
 
-							fl >> num;
-							newTask.deadline.day=num;
-							fl >> start >> num;
-							newTask.deadline.month=num;
-							fl >> start >> num;
-							newTask.deadline.year=num;
+								fl >> num;
+								newTask.deadline.day=num;
+								fl >> start >> num;
+								newTask.deadline.month=num;
+								fl >> start >> num;
+								newTask.deadline.year=num;
 
-							if(!(checkDate(toDoList,newTask))){//Comprobar si la fecha es valida
-								error(ERR_DATE);
-								getline(fl,line);
-								
-							}else if(checkDate(toDoList,newTask)){
-								fl >> start >> start;//Lee el caracter '|' y el de si la tarea esta echa o no
-								if(start == 'F')
-									newTask.isDone=false;
-								else if( start == 'T')
-									newTask.isDone=true;
+								if(!(checkDate(toDoList,newTask))){//Comprobar si la fecha es valida
+									error(ERR_DATE);
+									arrayTask.erase();
+									getline(fl,line);//Seguir leyendo tareas
+									fl>>start;
+								} else if(checkDate(toDoList,newTask)){
+									fl >> start >> start;//Lee el caracter '|' y el de si la tarea esta echa o no
+									if(start == 'F')
+										newTask.isDone=false;
+									else if( start == 'T')
+										newTask.isDone=true;
 
-								fl >> start >> num;//Lee el caracter '|' y el tiempo 
-								newTask.time=num;
-								if(newTask.time<1 || newTask.time>180){//Comprobar que el tiempo no esta entre 1 y 180 minutos, dar error 
-								    error(ERR_TIME);
-								    getline(fl,line);
-
-								}else{//Si todo es correcto
-									newList.tasks.push_back(newTask);//Se añade la tarea al vector tasks
-									arrayTask.erase();//Se restea el array para la proxima tarea
-									fl >> start;
+									fl >> start >> num;//Lee el caracter '|' y el tiempo 
+									newTask.time=num;
+									if(newTask.time<1 || newTask.time>180){//Comprobar que el tiempo no esta entre 1 y 180 minutos, dar error 
+									    error(ERR_TIME);
+									    arrayTask.erase();
+									    getline(fl,line);//Seguir leyendo tareas
+									    fl>>start;
+									}else{//Si todo es correcto
+										newList.tasks.push_back(newTask);//Se añade la tarea al vector tasks
+										arrayTask.erase();//Se restea el array para la proxima tarea
+										fl >> start;
+									}
 								}
-							}
-					    }
-						toDoList.lists.push_back(newList);//Añadir lista al vector lists
+						    }
+							toDoList.lists.push_back(newList);//Añadir lista al vector lists
+						}
+						toDoProject.projects.push_back(toDoList);//Añadir proyecto al vector projects
 					}
-					toDoProject.projects.push_back(toDoList);//Añadir proyecto al vector projects
 				}
 			}
 		}
@@ -723,16 +728,18 @@ void loadData(ToDo &toDoProject, string nameFile){
 	if(nameFile==""){
 		cout<<"Enter filename: ";
 		cin>>nameFile;
-		save=' ';
-
-		do{//Mientras no se introduzca Y/N mayuscula o minuscula
-			cout<<"Confirm [Y/N]?: ";
-			cin>>save;
-		}while(save!='Y' && save!='y' && save!='N' && save!='n');
+		save=' ';		
 	}
 
 	ifstream fbl(nameFile, ios::binary);
 	if(fbl.is_open()){//Se abre el fichero 
+
+		if(save==' '){
+			do{//Mientras no se introduzca Y/N mayuscula o minuscula
+				cout<<"Confirm [Y/N]?: ";
+				cin>>save;
+			}while(save!='Y' && save!='y' && save!='N' && save!='n');
+		}
 
 		if(save=='Y' || save=='y'){
 
@@ -823,10 +830,10 @@ void saveData(ToDo &toDoProject){
 	if(fbe.is_open()){//Se abre el fichero 
 
 		//Con strcpy() copia la informacion a una cadena de caracteres y .c_str() para para un string a cadena de caracteres
-		strncpy(toDoBinProject.name, toDoProject.name.c_str(), KMAXNAME-1);
+		strncpy(toDoBinProject.name, toDoProject.name.c_str(), KMAXNAME-1);//Almacena el nombre del proyecto
 		toDoBinProject.name[KMAXNAME-1]='\0';
-		toDoBinProject.numProjects = toDoProject.projects.size();
-		fbe.write((const char*)&toDoBinProject, sizeof(BinToDo));
+		toDoBinProject.numProjects = toDoProject.projects.size();//El tamaño del vector proyectos es el numero de proyectos
+		fbe.write((const char*)&toDoBinProject, sizeof(BinToDo));//Escribimos la informacion en el fichero
 
 		for (unsigned int i = 0; i < toDoProject.projects.size(); i++){//Recorre el vector de proyectos
 			toDoList = toDoProject.projects[i];
@@ -892,27 +899,52 @@ int main(int argc, char *argv[]){
 	bool argument=false;
 	string nameFile;
 
-	if(argc==1)
+	if(argc==1)//Si hay un argumento sera el ejegutable
 		argument=true;
 	else if(argc==3){
-		if(strcmp(argv[1],"-i") == 0){
+		if(strcmp(argv[1],"-i") == 0){//Si el segundo argumento es -i
+			argument=true;
+			string nameFile(argv[2]);//El siguiente argumento es el nombre del fichero de texto
+			importProjects(toDoProject, nameFile);//Se importa la informacion
+		}else if(strcmp(argv[1],"-l") == 0){//Si el segundo argumento es -l
 			argument=true;
 			string nameFile(argv[2]);
-			importProjects(toDoProject, nameFile);
-		}else if(strcmp(argv[1],"-l") == 0){
-			argument=true;
-			string nameFile(argv[2]);
-			loadData(toDoProject, nameFile);
+			loadData(toDoProject, nameFile);//Se carga la informacion del fichero binario
 		}else
 			error(ERR_ARGS);
 	}
 	else if(argc==5){
-		if((strcmp(argv[1],"-i") == 0 && strcmp(argv[3],"-l") == 0) || (strcmp(argv[1],"-l") == 0 && strcmp(argv[3],"-i") == 0)){
-			argument=true;
+		if(strcmp(argv[1],"-i") == 0 && strcmp(argv[3],"-l") == 0){//Si se introduce -i namefile2 -l namefile 
+			string nameFile(argv[4]);
+			string nameFile2(argv[2]);
+
+			//Se abren ambos ficheros
+			ifstream fbl(nameFile, ios::binary);
+			ifstream fl(nameFile2);
+			if(fbl.is_open() && fl.is_open()){//Si se abren
+				argument=true;
+				fbl.close();
+				fl.close();
+				loadData(toDoProject, nameFile);//Primero se carga la informacion del fichero bineario
+				importProjects(toDoProject, nameFile2);//Despues se importa la informacion del fichero de texto
+			}else//Si no se abre algun fichero o ambos
+				error(ERR_FILE);//Error al abrir el fichero
+		}			
+		else if(strcmp(argv[1],"-l") == 0 && strcmp(argv[3],"-i") == 0){//Si se introduce -l namefile -i namefile2 
 			string nameFile(argv[2]);
-			loadData(toDoProject, nameFile);
 			string nameFile2(argv[4]);
-			importProjects(toDoProject, nameFile2);
+
+			//Se abren ambos ficheros
+			ifstream fbl(nameFile, ios::binary);
+			ifstream fl(nameFile2);
+			if(fbl.is_open() && fl.is_open()){//Si se abren
+				argument=true;
+				fbl.close();
+				fl.close();
+				loadData(toDoProject, nameFile);//Primero se carga la informacion del fichero bineario
+				importProjects(toDoProject, nameFile2);//Despues se importa la informacion del fichero de texto
+			}else//Si no se abre algun fichero o ambos
+				error(ERR_FILE);//Error al abrir el fichero
 		}else 
 			error(ERR_ARGS);
 	}
